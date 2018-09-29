@@ -9,7 +9,7 @@
 class QOpenGLShaderProgram;
 
 class Window : public QOpenGLWindow,
-               protected QOpenGLFunctions
+        protected QOpenGLFunctions
 {
     Q_OBJECT
 
@@ -25,10 +25,10 @@ protected slots:
     void update();
 
 protected:
-  void keyPressEvent(QKeyEvent *event);
-  void keyReleaseEvent(QKeyEvent *event);
-  void mousePressEvent(QMouseEvent *event);
-  void mouseReleaseEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
 
 private:
     // OpenGL State Information

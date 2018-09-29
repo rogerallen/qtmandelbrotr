@@ -132,36 +132,36 @@ void Window::update()
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
-  if (event->isAutoRepeat())
-  {
-    event->ignore();
-  }
-  else
-  {
-    Input::registerKeyPress(event->key());
-  }
+    if (event->isAutoRepeat())
+    {
+        event->ignore();
+    }
+    else
+    {
+        Input::registerKeyPress(event->key());
+    }
 }
 
 void Window::keyReleaseEvent(QKeyEvent *event)
 {
-  if (event->isAutoRepeat())
-  {
-    event->ignore();
-  }
-  else
-  {
-    Input::registerKeyRelease(event->key());
-  }
+    if (event->isAutoRepeat())
+    {
+        event->ignore();
+    }
+    else
+    {
+        Input::registerKeyRelease(event->key());
+    }
 }
 
 void Window::mousePressEvent(QMouseEvent *event)
 {
-  Input::registerMousePress(event->button());
+    Input::registerMousePress(event->button());
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
-  Input::registerMouseRelease(event->button());
+    Input::registerMouseRelease(event->button());
 }
 
 // ======================================================================
