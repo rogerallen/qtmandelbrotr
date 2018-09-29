@@ -1,8 +1,10 @@
 #version 330
-in vec4 vColor;
+uniform sampler2D texture;
+in vec4 vTexCoords;
 out vec4 fColor;
 
 void main()
 {
-    fColor = vColor;
+    //fColor = vTexCoords;
+    fColor = texture2D(texture, vTexCoords.st);
 }

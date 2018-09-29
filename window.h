@@ -6,7 +6,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 
-class QOpenGLShaderProgram;
+QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
+QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 
 class Window : public QOpenGLWindow,
         protected QOpenGLFunctions
@@ -21,6 +22,7 @@ public:
     void resizeGL(int width, int height);
     void paintGL();
     void teardownGL();
+
 protected slots:
     void update();
 
@@ -35,6 +37,7 @@ private:
     QOpenGLBuffer             m_vertex;
     QOpenGLVertexArrayObject  m_object;
     QOpenGLShaderProgram     *m_program;
+    QOpenGLTexture           *m_texture;
 
     void printInfo();
 };

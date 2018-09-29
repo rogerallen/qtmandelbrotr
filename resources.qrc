@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>shaders/basic_frag.glsl</file>
         <file>shaders/basic_vert.glsl</file>
+        <file>images/side1.png</file>
     </qresource>
 </RCC>

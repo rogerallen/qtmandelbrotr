@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QString>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
 #include <QExposeEvent>
 #include "input.h"
 #include "window.h"
@@ -24,9 +25,9 @@
 // -1  0  1  2  3 x position coords
 //  0     1     2 s texture coords
 static const Vertex sg_vertexes[] = {
-    Vertex( QVector3D(-1.0f,  3.0f, -1.0f), QVector3D(2.0f, 0.0f, 0.0f) ),
+    Vertex( QVector3D(-1.0f,  3.0f, -1.0f), QVector3D(0.0f, 2.0f, 0.0f) ),
     Vertex( QVector3D(-1.0f, -1.0f, -1.0f), QVector3D(0.0f, 0.0f, 1.0f) ),
-    Vertex( QVector3D( 3.0f, -1.0f, -1.0f), QVector3D(0.0f, 2.0f, 0.0f) )
+    Vertex( QVector3D( 3.0f, -1.0f, -1.0f), QVector3D(2.0f, 0.0f, 0.0f) )
 };
 
 Window::Window()
@@ -81,6 +82,9 @@ void Window::initializeGL()
         m_object.release();
         m_vertex.release();
         m_program->release();
+
+        // Load texture
+        m_texture = new QOpenGLTexture(QImage(QString(":/images/side1.png")).mirrored());
     }
 }
 
@@ -100,6 +104,7 @@ void Window::paintGL()
     m_program->bind();
     {
         m_object.bind();
+        m_texture->bind();
         glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
         m_object.release();
     }
@@ -112,6 +117,7 @@ void Window::teardownGL()
     m_object.destroy();
     m_vertex.destroy();
     delete m_program;
+    delete m_texture;
 }
 
 // ======================================================================

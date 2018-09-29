@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 
     Window window;
     window.setFormat(format);
-    window.resize(QSize(800,600));
+    window.resize(QSize(800,800));
     window.show();
 
     return app.exec();

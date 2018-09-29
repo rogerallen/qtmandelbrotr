@@ -32,7 +32,8 @@ HEADERS += \
 DISTFILES += \
     README.md \
     shaders/basic_frag.glsl \
-    shaders/basic_vert.glsl
+    shaders/basic_vert.glsl \
+    images/side1.png
 
 RESOURCES += \
     resources.qrc
