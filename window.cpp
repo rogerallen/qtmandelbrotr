@@ -8,6 +8,8 @@
 #include "window.h"
 #include "vertex.h"
 
+#include "glm/glm.hpp"
+
 extern void CUDA_init();
 extern void *CUDA_registerBuffer(GLuint buf);
 extern void CUDA_unregisterBuffer(void *res);
@@ -100,14 +102,14 @@ void Window::initializeGL()
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_shared_pbo_id);
         // Allocate data for the buffer
         m_shared_width = m_shared_height = 1024;
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, m_shared_width * m_shared_height * 4, NULL, GL_DYNAMIC_COPY);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, m_shared_width * m_shared_height * 4, nullptr, GL_DYNAMIC_COPY);
 
         // Create a GL Texture
         glEnable(GL_TEXTURE_2D);
         glGenTextures(1,&m_shared_tex_id);
         glBindTexture(GL_TEXTURE_2D, m_shared_tex_id);
         // Allocate the texture memory.
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_shared_width, m_shared_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_shared_width, m_shared_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
         // Set filter mode
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
@@ -161,8 +163,8 @@ void Window::paintGL()
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_shared_pbo_id);
         glBindTexture(GL_TEXTURE_2D, m_shared_tex_id);
         // Since source parameter is NULL, Data is coming from a PBO, not host memory
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_shared_width, m_shared_height, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, NULL);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_shared_width, m_shared_height, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
         glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
         m_object.release();

@@ -14,6 +14,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+# added glm headers & it totally mangled this file.  Just adding them to git and not
+# worrying about them in here...
+
 SOURCES += \
     main.cpp \
     window.cpp \
@@ -33,8 +36,7 @@ DISTFILES += \
     README.md \
     shaders/basic_frag.glsl \
     shaders/basic_vert.glsl \
-    images/side1.png \
-    cuda_code.cu
+    images/side1.png
 
 RESOURCES += \
     resources.qrc
@@ -52,7 +54,7 @@ INCLUDEPATH  += $$CUDA_DIR/include
 LIBS         += -L $$CUDA_DIR/lib64 -lcudart -lcuda
 cuda.commands        = $$CUDA_DIR/bin/nvcc -c -gencode $$CUDA_GENCODE -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
 cuda.dependency_type = TYPE_C
-cuda.depend_command  = $$CUDA_DIR/bin/nvcc -M ${QMAKE_FILE_NAME
+cuda.depend_command  = $$CUDA_DIR/bin/nvcc -M ${QMAKE_FILE_NAME}
 cuda.input           = CUDA_SOURCES
 cuda.output          = ${QMAKE_FILE_BASE}_cuda.o
 # Tell Qt that we want add more stuff to the Makefile
