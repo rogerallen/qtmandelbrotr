@@ -8,6 +8,13 @@
 #include "window.h"
 #include "vertex.h"
 
+extern void CUDA_init();
+extern void *CUDA_registerBuffer(GLuint buf);
+extern void CUDA_unregisterBuffer(void *res);
+extern void *CUDA_map(void *res);
+extern void CUDA_unmap(void *res);
+extern void CUDA_do_something(void *devPtr, int w, int h, float t);
+
 // Create a colored single fullscreen triangle
 // 3*______________
 //  |\_____________
@@ -32,7 +39,7 @@ static const Vertex sg_vertexes[] = {
 
 Window::Window()
 {
-
+    m_t = 0.0f;
 }
 
 Window::~Window()
@@ -55,7 +62,7 @@ void Window::initializeGL()
     // Set global information
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Application-specific initialization
+    // OpenGL initialization
     {
         // Create Shader (Do not release until VAO is created)
         m_program = new QOpenGLShaderProgram();
@@ -85,11 +92,48 @@ void Window::initializeGL()
 
         // Load texture
         m_texture = new QOpenGLTexture(QImage(QString(":/images/side1.png")).mirrored());
+
+        // Shared OpenGL & CUDA buffer
+        // Generate a buffer ID
+        glGenBuffers(1,&m_shared_pbo_id);
+        // Make this the current UNPACK buffer aka PBO (Pixel Buffer Object)
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_shared_pbo_id);
+        // Allocate data for the buffer
+        m_shared_width = m_shared_height = 1024;
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, m_shared_width * m_shared_height * 4, NULL, GL_DYNAMIC_COPY);
+
+        // Create a GL Texture
+        glEnable(GL_TEXTURE_2D);
+        glGenTextures(1,&m_shared_tex_id);
+        glBindTexture(GL_TEXTURE_2D, m_shared_tex_id);
+        // Allocate the texture memory.
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_shared_width, m_shared_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        // Set filter mode
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    }
+
+    // CUDA initialization
+    {
+        CUDA_init();
+        m_cuda_pbo_handle = CUDA_registerBuffer(m_shared_pbo_id);
     }
 }
 
 void Window::resizeGL(int width, int height)
 {
+    /*
+   // Set the aspect ratio of the clipping area to match the viewport
+   glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
+   glLoadIdentity();             // Reset the projection matrix
+   if (width >= height) {
+     // aspect >= 1, set the height from -1 to 1, with larger width
+      gluOrtho2D(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0);
+   } else {
+      // aspect < 1, set the width to -1 to 1, with larger height
+     gluOrtho2D(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect);
+   }
+     */
     // Currently we are not handling width/height changes
     (void)width;
     (void)height;
@@ -100,11 +144,26 @@ void Window::paintGL()
     // Clear
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // Do some CUDA that writes to the pbo
+    void *devPtr = CUDA_map(m_cuda_pbo_handle);
+    m_t += 1.0f/1.0f;
+    CUDA_do_something(devPtr, m_shared_width, m_shared_height, m_t);
+    CUDA_unmap(m_cuda_pbo_handle);
+
     // Render using our shader
     m_program->bind();
     {
         m_object.bind();
-        m_texture->bind();
+
+        // the equivalent of:
+        // m_texture->bind();
+        // connect the pbo to the texture
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_shared_pbo_id);
+        glBindTexture(GL_TEXTURE_2D, m_shared_tex_id);
+        // Since source parameter is NULL, Data is coming from a PBO, not host memory
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_shared_width, m_shared_height, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, NULL);
+
         glDrawArrays(GL_TRIANGLES, 0, sizeof(sg_vertexes) / sizeof(sg_vertexes[0]));
         m_object.release();
     }
@@ -113,7 +172,10 @@ void Window::paintGL()
 
 void Window::teardownGL()
 {
-    // Actually destroy our OpenGL information
+    // Destroy our CUDA info
+    CUDA_unregisterBuffer(m_cuda_pbo_handle);
+
+    // Destroy our OpenGL information
     m_object.destroy();
     m_vertex.destroy();
     delete m_program;

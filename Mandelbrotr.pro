@@ -15,7 +15,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp \
+    main.cpp \
     window.cpp \
     input.cpp
 
@@ -33,7 +33,27 @@ DISTFILES += \
     README.md \
     shaders/basic_frag.glsl \
     shaders/basic_vert.glsl \
-    images/side1.png
+    images/side1.png \
+    cuda_code.cu
 
 RESOURCES += \
     resources.qrc
+
+# CUDA
+# Path to cuda toolkit install
+CUDA_DIR      = /usr/local/cuda
+# GPU architecture (ADJUST FOR YOUR GPU)
+CUDA_GENCODE  = arch=compute_60,code=sm_60
+# manually add CUDA sources (ADJUST MANUALLY)
+CUDA_SOURCES += cuda_code.cu
+# Path to header and libs files
+INCLUDEPATH  += $$CUDA_DIR/include
+# libs used in your code
+LIBS         += -L $$CUDA_DIR/lib64 -lcudart -lcuda
+cuda.commands        = $$CUDA_DIR/bin/nvcc -c -gencode $$CUDA_GENCODE -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+cuda.dependency_type = TYPE_C
+cuda.depend_command  = $$CUDA_DIR/bin/nvcc -M ${QMAKE_FILE_NAME
+cuda.input           = CUDA_SOURCES
+cuda.output          = ${QMAKE_FILE_BASE}_cuda.o
+# Tell Qt that we want add more stuff to the Makefile
+QMAKE_EXTRA_COMPILERS += cuda

@@ -38,6 +38,10 @@ private:
     QOpenGLVertexArrayObject  m_object;
     QOpenGLShaderProgram     *m_program;
     QOpenGLTexture           *m_texture;
+    GLuint                    m_shared_pbo_id, m_shared_tex_id;
+    int                       m_shared_width, m_shared_height;
+    void                     *m_cuda_pbo_handle;
+    float m_t;
 
     void printInfo();
 };
