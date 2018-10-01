@@ -4,11 +4,12 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QExposeEvent>
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
 #include "input.h"
 #include "window.h"
 #include "vertex.h"
 
-#include "glm/glm.hpp"
 
 extern void CUDA_init();
 extern void *CUDA_registerBuffer(GLuint buf);
@@ -73,6 +74,9 @@ void Window::initializeGL()
         m_program->link();
         m_program->bind();
 
+        // Bind uniforms
+        u_cameraToView = m_program->uniformLocation("cameraToView");
+
         // Create Buffer (Do not release until VAO is created)
         m_vertex.create();
         m_vertex.bind();
@@ -92,7 +96,7 @@ void Window::initializeGL()
         m_vertex.release();
         m_program->release();
 
-        // Load texture
+        // Load texture (not used anymore FIXME?)
         m_texture = new QOpenGLTexture(QImage(QString(":/images/side1.png")).mirrored());
 
         // Shared OpenGL & CUDA buffer
@@ -111,8 +115,8 @@ void Window::initializeGL()
         // Allocate the texture memory.
         glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_shared_width, m_shared_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
         // Set filter mode
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     }
 
     // CUDA initialization
@@ -122,23 +126,18 @@ void Window::initializeGL()
     }
 }
 
+// keep the longest side (-1,1) and keep centered around 0,0 origin.
 void Window::resizeGL(int width, int height)
 {
-    /*
-   // Set the aspect ratio of the clipping area to match the viewport
-   glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
-   glLoadIdentity();             // Reset the projection matrix
-   if (width >= height) {
-     // aspect >= 1, set the height from -1 to 1, with larger width
-      gluOrtho2D(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0);
-   } else {
-      // aspect < 1, set the width to -1 to 1, with larger height
-     gluOrtho2D(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect);
-   }
-     */
-    // Currently we are not handling width/height changes
-    (void)width;
-    (void)height;
+    float aspect = float(width)/float(height);
+
+    if (width >= height) {
+        // aspect >= 1, set the width to -1 to 1, with larger height
+        m_projection = glm::ortho(-1.0f, 1.0f, -1.0f / aspect, 1.0f / aspect);
+    } else {
+        // aspect < 1, set the height from -1 to 1, with larger width
+        m_projection = glm::ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f);
+    }
 }
 
 void Window::paintGL()
@@ -148,12 +147,13 @@ void Window::paintGL()
 
     // Do some CUDA that writes to the pbo
     void *devPtr = CUDA_map(m_cuda_pbo_handle);
-    m_t += 1.0f/1.0f;
+    m_t = 0.0f;//127.5f;//1.0f/1.0f;
     CUDA_do_something(devPtr, m_shared_width, m_shared_height, m_t);
     CUDA_unmap(m_cuda_pbo_handle);
 
     // Render using our shader
     m_program->bind();
+    m_program->setUniformValue(u_cameraToView, QMatrix4x4(glm::value_ptr(m_projection)));
     {
         m_object.bind();
 

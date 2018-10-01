@@ -6,6 +6,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 
+#include "glm/mat4x4.hpp"
+
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 
@@ -34,6 +36,8 @@ protected:
 
 private:
     // OpenGL State Information
+    int                       u_cameraToView;
+    glm::mat4                 m_projection;
     QOpenGLBuffer             m_vertex;
     QOpenGLVertexArrayObject  m_object;
     QOpenGLShaderProgram     *m_program;

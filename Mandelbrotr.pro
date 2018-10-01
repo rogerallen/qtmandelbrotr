@@ -30,7 +30,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     window.h \
     vertex.h \
-    input.h
+    input.h \
+    glm\glm.hpp
 
 DISTFILES += \
     README.md \
