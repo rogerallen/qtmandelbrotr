@@ -54,22 +54,54 @@ void CUDA_unmap(void *res)
         puts("Failed to unmap resource");
 }
 
-__global__ void run(uchar4 *ptr, int w, int h, float t)
+__global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
 {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
     int offset = x + y * blockDim.x * gridDim.x;
 
     if(x < w && y < h) {
+#if 0
         uchar4 bgra = {0x0,0x0,0x0,0x0};
         bgra.y = (unsigned char)(t + 255.99f*y/(float)h);
         bgra.z = (unsigned char)(t + 255.99f*x/(float)w);
         *(ptr + offset) = bgra;
+#else
+        uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
+        unsigned int MaxIterations = 256;
+        float ImageWidth = w;
+        float ImageHeight = h;
+        float MinRe = cx - 1.0f/zoom;
+        float MaxRe = cx + 1.0f/zoom;
+        float MinIm = cy - 1.0f/zoom;
+        float MaxIm = MinIm+(MaxRe-MinRe)*ImageHeight/ImageWidth;
+        float Re_factor = (MaxRe-MinRe)/(ImageWidth-1);
+        float Im_factor = (MaxIm-MinIm)/(ImageHeight-1);
+
+        float c_im = MinIm + y*Im_factor;
+        float c_re = MinRe + x*Re_factor;
+
+        float Z_re = c_re, Z_im = c_im;
+        //bool isInside = true;
+        for(unsigned int n=0; n<MaxIterations; ++n) {
+            float Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
+            if(Z_re2 + Z_im2 > 4.0f){
+                // outside the set, set color
+                bgra.x = unsigned(char(n));
+                bgra.y = unsigned(char(n));
+                bgra.z = unsigned(char(n));
+                break;
+            }
+            Z_im = 2*Z_re*Z_im + c_im;
+            Z_re = Z_re2 - Z_im2 + c_re;
+        }
+        *(ptr + offset) = bgra;
+#endif
     }
 }
 
-void CUDA_do_something(void *devPtr, int w, int h, float t)
+void CUDA_do_something(void *devPtr, int w, int h, float cx, float cy, float zoom)
 {
     const int blockSize = 16; // 256 threads per block
-    run<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, t);
+    run<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, cx, cy, zoom);
 }

@@ -16,7 +16,7 @@ extern void *CUDA_registerBuffer(GLuint buf);
 extern void CUDA_unregisterBuffer(void *res);
 extern void *CUDA_map(void *res);
 extern void CUDA_unmap(void *res);
-extern void CUDA_do_something(void *devPtr, int w, int h, float t);
+extern void CUDA_do_something(void *devPtr, int w, int h, float cx, float cy, float zoom);
 
 // Create a colored single fullscreen triangle
 // 3*______________
@@ -42,7 +42,10 @@ static const Vertex sg_vertexes[] = {
 
 Window::Window()
 {
-    m_t = 0.0f;
+    m_shared_width = m_shared_height = 2048;
+    m_center_x = 0.0f;
+    m_center_y = 0.0f;
+    m_zoom = 0.5f;
 }
 
 Window::~Window()
@@ -105,7 +108,6 @@ void Window::initializeGL()
         // Make this the current UNPACK buffer aka PBO (Pixel Buffer Object)
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_shared_pbo_id);
         // Allocate data for the buffer
-        m_shared_width = m_shared_height = 1024;
         glBufferData(GL_PIXEL_UNPACK_BUFFER, m_shared_width * m_shared_height * 4, nullptr, GL_DYNAMIC_COPY);
 
         // Create a GL Texture
@@ -129,6 +131,8 @@ void Window::initializeGL()
 // keep the longest side (-1,1) and keep centered around 0,0 origin.
 void Window::resizeGL(int width, int height)
 {
+    m_window_width = width;
+    m_window_height = height;
     float aspect = float(width)/float(height);
 
     if (width >= height) {
@@ -147,8 +151,7 @@ void Window::paintGL()
 
     // Do some CUDA that writes to the pbo
     void *devPtr = CUDA_map(m_cuda_pbo_handle);
-    m_t = 0.0f;//127.5f;//1.0f/1.0f;
-    CUDA_do_something(devPtr, m_shared_width, m_shared_height, m_t);
+    CUDA_do_something(devPtr, m_shared_width, m_shared_height, m_center_x, m_center_y, m_zoom);
     CUDA_unmap(m_cuda_pbo_handle);
 
     // Render using our shader
@@ -197,6 +200,16 @@ void Window::update()
         QCoreApplication::quit();
     }
 
+    if (Input::buttonPressed(Qt::LeftButton)) {
+        QPoint delta_pos = QCursor::pos() - m_mouse_start;
+        float pixels_per_mspace = (m_window_width > m_window_height) ? float(m_window_width)*m_zoom : float(m_window_height)*m_zoom;
+        float mspace_per_pixel = 2.0f/pixels_per_mspace;
+        float center_delta_x = float(delta_pos.x())*mspace_per_pixel;
+        float center_delta_y = float(delta_pos.y())*mspace_per_pixel;
+        m_center_x = m_center_start_x - center_delta_x;
+        m_center_y = m_center_start_y + center_delta_y;
+    }
+
     QOpenGLWindow::update();
 }
 
@@ -226,12 +239,27 @@ void Window::keyReleaseEvent(QKeyEvent *event)
 
 void Window::mousePressEvent(QMouseEvent *event)
 {
+    if(event->button() == Qt::LeftButton) {
+        m_mouse_start = QCursor::pos();
+        m_center_start_x = m_center_x;
+        m_center_start_y = m_center_y;
+    }
     Input::registerMousePress(event->button());
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
     Input::registerMouseRelease(event->button());
+}
+
+void Window::wheelEvent(QWheelEvent *event)
+{
+    if(event->delta() > 0) {
+        m_zoom *= 1.05;
+    }
+    else {
+        m_zoom /= 1.05f;
+    }
 }
 
 // ======================================================================
