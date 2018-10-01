@@ -16,7 +16,7 @@ extern void *CUDA_registerBuffer(GLuint buf);
 extern void CUDA_unregisterBuffer(void *res);
 extern void *CUDA_map(void *res);
 extern void CUDA_unmap(void *res);
-extern void CUDA_do_something(void *devPtr, int w, int h, float cx, float cy, float zoom);
+extern void CUDA_do_something(void *devPtr, int w, int h, double cx, double cy, double zoom);
 
 // Create a colored single fullscreen triangle
 // 3*______________
@@ -43,9 +43,9 @@ static const Vertex sg_vertexes[] = {
 Window::Window()
 {
     m_shared_width = m_shared_height = 2048;
-    m_center_x = 0.0f;
-    m_center_y = 0.0f;
-    m_zoom = 0.5f;
+    m_center_x = 0.0;
+    m_center_y = 0.0;
+    m_zoom = 0.5;
 }
 
 Window::~Window()
@@ -202,10 +202,10 @@ void Window::update()
 
     if (Input::buttonPressed(Qt::LeftButton)) {
         QPoint delta_pos = QCursor::pos() - m_mouse_start;
-        float pixels_per_mspace = (m_window_width > m_window_height) ? float(m_window_width)*m_zoom : float(m_window_height)*m_zoom;
-        float mspace_per_pixel = 2.0f/pixels_per_mspace;
-        float center_delta_x = float(delta_pos.x())*mspace_per_pixel;
-        float center_delta_y = float(delta_pos.y())*mspace_per_pixel;
+        double pixels_per_mspace = (m_window_width > m_window_height) ? double(m_window_width)*m_zoom : double(m_window_height)*m_zoom;
+        double mspace_per_pixel = 2.0/pixels_per_mspace;
+        double center_delta_x = double(delta_pos.x())*mspace_per_pixel;
+        double center_delta_y = double(delta_pos.y())*mspace_per_pixel;
         m_center_x = m_center_start_x - center_delta_x;
         m_center_y = m_center_start_y + center_delta_y;
     }
@@ -255,10 +255,10 @@ void Window::mouseReleaseEvent(QMouseEvent *event)
 void Window::wheelEvent(QWheelEvent *event)
 {
     if(event->delta() > 0) {
-        m_zoom *= 1.05;
+        m_zoom *= 1.1;
     }
     else {
-        m_zoom /= 1.05f;
+        m_zoom /= 1.1;
     }
 }
 

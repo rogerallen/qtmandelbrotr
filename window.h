@@ -47,9 +47,9 @@ private:
     int                       m_window_width, m_window_height;
     int                       m_shared_width, m_shared_height;
     void                     *m_cuda_pbo_handle;
-    float m_zoom;
+    double m_zoom;
     QPoint m_mouse_start;
-    float m_center_start_x, m_center_start_y, m_center_x, m_center_y;
+    double m_center_start_x, m_center_start_y, m_center_x, m_center_y;
 
     void printInfo();
 };
