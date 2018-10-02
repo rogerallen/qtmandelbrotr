@@ -46,6 +46,8 @@ Window::Window()
     m_center_x = 0.0;
     m_center_y = 0.0;
     m_zoom = 0.5;
+    m_is_full_screen = false;
+    m_zoom_out_mode = false;
 }
 
 Window::~Window()
@@ -199,6 +201,26 @@ void Window::update()
     if (Input::keyPressed(Qt::Key_Escape)) {
         QCoreApplication::quit();
     }
+    else if (Input::keyPressed(Qt::Key_F)) {
+        // FIXME -- we get multiple calls & we don't want that.
+        if (m_is_full_screen) {
+            showNormal();
+            m_is_full_screen = false;
+        } else {
+            showFullScreen();
+            m_is_full_screen = true;
+        }
+    } else if (Input::keyPressed(Qt::Key_Return)) {
+        m_zoom_out_mode = true;
+        printf("zoom out!\n");
+    }
+
+    if(m_zoom_out_mode) {
+        m_zoom /= 1.1;
+        if(m_zoom < 0.5) {
+            m_zoom_out_mode = false;
+        }
+    }
 
     if (Input::buttonPressed(Qt::LeftButton)) {
         QPoint delta_pos = QCursor::pos() - m_mouse_start;
@@ -260,6 +282,7 @@ void Window::wheelEvent(QWheelEvent *event)
     else {
         m_zoom /= 1.1;
     }
+    printf("zoom=%g\n",m_zoom);
 }
 
 // ======================================================================

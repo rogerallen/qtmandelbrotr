@@ -50,6 +50,8 @@ private:
     double m_zoom;
     QPoint m_mouse_start;
     double m_center_start_x, m_center_start_y, m_center_x, m_center_y;
+    bool   m_is_full_screen;
+    bool   m_zoom_out_mode;
 
     void printInfo();
 };

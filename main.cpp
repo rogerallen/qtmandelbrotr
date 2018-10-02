@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     Window window;
     window.setFormat(format);
     window.resize(QSize(800,800));
-    window.show();//FullScreen();
+    window.show();
 
     return app.exec();
 }
