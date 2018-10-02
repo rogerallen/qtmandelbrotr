@@ -3,6 +3,8 @@ Mandelbrotr
 
 A CUDA & OpenGL-powered Qt Mandelbrot pan/zoom application.  There are many like it, but this is mine.
 
+![Screenshot](images/screenshot1.png)
+
 Acknowledgements
 ----------------
 
