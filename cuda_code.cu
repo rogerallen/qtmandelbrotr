@@ -68,7 +68,7 @@ __global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
         *(ptr + offset) = bgra;
 #else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
-        unsigned int MaxIterations = 256;
+        unsigned int MaxIterations = 3*256;
         float ImageWidth = w;
         float ImageHeight = h;
         float MinRe = cx - 1.0f/zoom;
@@ -85,11 +85,12 @@ __global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
         //bool isInside = true;
         for(unsigned int n=0; n<MaxIterations; ++n) {
             float Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
-            if(Z_re2 + Z_im2 > 4.0f){
+            if(Z_re2 + Z_im2 > 4.0f) {
+                int nn = n & 0xFF;
                 // outside the set, set color
-                bgra.x = unsigned(char(n));
-                bgra.y = unsigned(char(n));
-                bgra.z = unsigned(char(n));
+                bgra.x = unsigned(char(nn));
+                bgra.y = unsigned(char(nn));
+                bgra.z = unsigned(char(nn));
                 break;
             }
             Z_im = 2*Z_re*Z_im + c_im;
@@ -114,7 +115,7 @@ __global__ void rund(uchar4 *ptr, int w, int h, double cx, double cy, double zoo
         *(ptr + offset) = bgra;
 #else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
-        unsigned int MaxIterations = 256;
+        unsigned int MaxIterations = 1*256;
         double ImageWidth = w;
         double ImageHeight = h;
         double MinRe = cx - 1.0/zoom;
@@ -132,10 +133,11 @@ __global__ void rund(uchar4 *ptr, int w, int h, double cx, double cy, double zoo
         for(unsigned int n=0; n<MaxIterations; ++n) {
             double Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
             if(Z_re2 + Z_im2 > 4.0){
+                int nn = n & 0xFF;
                 // outside the set, set color
-                bgra.x = unsigned(char(n));
-                bgra.y = unsigned(char(n));
-                bgra.z = unsigned(char(n));
+                bgra.x = unsigned(char(nn));
+                bgra.y = unsigned(char(nn));
+                bgra.z = unsigned(char(nn));
                 break;
             }
             Z_im = 2*Z_re*Z_im + c_im;
