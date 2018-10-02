@@ -30,19 +30,20 @@ void *cuda_register_buffer(GLuint buf)
 
 void cuda_unregister_resource(void *res)
 {
-    if (cudaGraphicsUnregisterResource(reinterpret_cast<cudaGraphicsResource *>(res)) != cudaSuccess)
+    if (cudaGraphicsUnregisterResource(static_cast<cudaGraphicsResource *>(res)) != cudaSuccess)
         puts("Failed to unregister resource for buffer");
 }
 
 void *cuda_map_resource(void *res)
 {
-    if (cudaGraphicsMapResources(1, reinterpret_cast<cudaGraphicsResource **>(&res)) != cudaSuccess) {
+    cudaGraphicsResource *ptr = static_cast<cudaGraphicsResource *>(res);
+    if (cudaGraphicsMapResources(1, &ptr) != cudaSuccess) {
         puts("Failed to map resource");
         return nullptr;
     }
     void *devPtr = nullptr;
     size_t size;
-    if (cudaGraphicsResourceGetMappedPointer(&devPtr, &size, reinterpret_cast<cudaGraphicsResource *>(res)) != cudaSuccess) {
+    if (cudaGraphicsResourceGetMappedPointer(&devPtr, &size, static_cast<cudaGraphicsResource *>(res)) != cudaSuccess) {
         puts("Failed to get device pointer");
         return nullptr;
     }
@@ -51,6 +52,7 @@ void *cuda_map_resource(void *res)
 
 void cuda_unmap_resource(void *res)
 {
-    if (cudaGraphicsUnmapResources(1, reinterpret_cast<cudaGraphicsResource **>(&res)) != cudaSuccess)
+    cudaGraphicsResource *ptr = static_cast<cudaGraphicsResource *>(res);
+    if (cudaGraphicsUnmapResources(1, &ptr) != cudaSuccess)
         puts("Failed to unmap resource");
 }
