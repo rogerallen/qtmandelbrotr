@@ -20,7 +20,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     window.cpp \
-    input.cpp
+    input.cpp \
+    cuda_utils.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -31,7 +32,8 @@ HEADERS += \
     window.h \
     vertex.h \
     input.h \
-    glm\glm.hpp
+    glm\glm.hpp \
+    cuda_utils.h
 
 DISTFILES += \
     README.md \
@@ -48,7 +50,7 @@ CUDA_DIR      = /usr/local/cuda
 # GPU architecture (ADJUST FOR YOUR GPU)
 CUDA_GENCODE  = arch=compute_60,code=sm_60
 # manually add CUDA sources (ADJUST MANUALLY)
-CUDA_SOURCES += cuda_code.cu
+CUDA_SOURCES += mandelbrot.cu
 # Path to header and libs files
 INCLUDEPATH  += $$CUDA_DIR/include
 # libs used in your code

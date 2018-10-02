@@ -1,60 +1,7 @@
 /* CUDA code goes  here */
-#include <stdio.h>
-#include <GL/gl.h>
 #include <cuda.h>
-#include <cuda_gl_interop.h>
 
-// cuda needs to be initialized after opengl
-void CUDA_init()
-{
-    cudaDeviceProp prop;
-    int dev;
-    memset(&prop, 0, sizeof(cudaDeviceProp));
-    prop.major = 6;
-    prop.minor = 0;
-    if (cudaChooseDevice(&dev, &prop) != cudaSuccess)
-        puts("failed to choose device");
-    printf("cuda chose device %d\n",dev);
-    if (cudaGLSetGLDevice(dev) != cudaSuccess)
-        puts("failed to set gl device");
-}
-
-void *CUDA_registerBuffer(GLuint buf)
-{
-    cudaGraphicsResource *res = 0;
-    if (cudaGraphicsGLRegisterBuffer(&res, buf, cudaGraphicsRegisterFlagsNone) != cudaSuccess)
-        printf("Failed to register buffer %u\n", buf);
-    return res;
-}
-
-void CUDA_unregisterBuffer(void *res)
-{
-    if (cudaGraphicsUnregisterResource((cudaGraphicsResource *) res) != cudaSuccess)
-        puts("Failed to unregister resource for buffer");
-}
-
-void *CUDA_map(void *res)
-{
-    if (cudaGraphicsMapResources(1, (cudaGraphicsResource **) &res) != cudaSuccess) {
-        puts("Failed to map resource");
-        return 0;
-    }
-    void *devPtr = 0;
-    size_t size;
-    if (cudaGraphicsResourceGetMappedPointer(&devPtr, &size, (cudaGraphicsResource *) res) != cudaSuccess) {
-        puts("Failed to get device pointer");
-        return 0;
-    }
-    return devPtr;
-}
-
-void CUDA_unmap(void *res)
-{
-    if (cudaGraphicsUnmapResources(1,(cudaGraphicsResource **) &res) != cudaSuccess)
-        puts("Failed to unmap resource");
-}
-
-__global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
+__global__ void mandel_float(uchar4 *ptr, int w, int h, float cx, float cy, float zoom, int iter_mult)
 {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -68,7 +15,7 @@ __global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
         *(ptr + offset) = bgra;
 #else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
-        unsigned int MaxIterations = 3*256;
+        unsigned int MaxIterations = iter_mult*256;
         float ImageWidth = w;
         float ImageHeight = h;
         float MinRe = cx - 1.0f/zoom;
@@ -101,7 +48,7 @@ __global__ void run(uchar4 *ptr, int w, int h, float cx, float cy, float zoom)
     }
 }
 
-__global__ void rund(uchar4 *ptr, int w, int h, double cx, double cy, double zoom)
+__global__ void mandel_double(uchar4 *ptr, int w, int h, double cx, double cy, double zoom, int iter_mult)
 {
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -115,7 +62,7 @@ __global__ void rund(uchar4 *ptr, int w, int h, double cx, double cy, double zoo
         *(ptr + offset) = bgra;
 #else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
-        unsigned int MaxIterations = 1*256;
+        unsigned int MaxIterations = iter_mult*256;
         double ImageWidth = w;
         double ImageHeight = h;
         double MinRe = cx - 1.0/zoom;
@@ -148,9 +95,13 @@ __global__ void rund(uchar4 *ptr, int w, int h, double cx, double cy, double zoo
     }
 }
 
-void CUDA_do_something(void *devPtr, int w, int h, double cx, double cy, double zoom)
+void mandelbrot(void *devPtr, int w, int h, double cx, double cy, double zoom)
 {
     const int blockSize = 16; // 256 threads per block
-    //run<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, float(cx), float(cy), float(zoom));
-    rund<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, cx, cy, zoom);
+    if(false) {
+        mandel_float<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, float(cx), float(cy), float(zoom), 1);
+    }
+    else {
+        mandel_double<<<dim3(w / blockSize, h / blockSize), dim3(blockSize, blockSize)>>>((uchar4 *) devPtr, w, h, cx, cy, zoom, 1);
+    }
 }

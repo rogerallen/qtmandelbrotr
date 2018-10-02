@@ -9,14 +9,9 @@
 #include "input.h"
 #include "window.h"
 #include "vertex.h"
+#include "cuda_utils.h"
 
-
-extern void CUDA_init();
-extern void *CUDA_registerBuffer(GLuint buf);
-extern void CUDA_unregisterBuffer(void *res);
-extern void *CUDA_map(void *res);
-extern void CUDA_unmap(void *res);
-extern void CUDA_do_something(void *devPtr, int w, int h, double cx, double cy, double zoom);
+extern void mandelbrot(void *devPtr, int w, int h, double cx, double cy, double zoom);
 
 // Create a colored single fullscreen triangle
 // 3*______________
@@ -125,8 +120,8 @@ void Window::initializeGL()
 
     // CUDA initialization
     {
-        CUDA_init();
-        m_cuda_pbo_handle = CUDA_registerBuffer(m_shared_pbo_id);
+        cuda_init();
+        m_cuda_pbo_handle = cuda_register_buffer(m_shared_pbo_id);
     }
 }
 
@@ -152,9 +147,9 @@ void Window::paintGL()
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Do some CUDA that writes to the pbo
-    void *devPtr = CUDA_map(m_cuda_pbo_handle);
-    CUDA_do_something(devPtr, m_shared_width, m_shared_height, m_center_x, m_center_y, m_zoom);
-    CUDA_unmap(m_cuda_pbo_handle);
+    void *devPtr = cuda_map_resource(m_cuda_pbo_handle);
+    mandelbrot(devPtr, m_shared_width, m_shared_height, m_center_x, m_center_y, m_zoom);
+    cuda_unmap_resource(m_cuda_pbo_handle);
 
     // Render using our shader
     m_program->bind();
@@ -180,7 +175,7 @@ void Window::paintGL()
 void Window::teardownGL()
 {
     // Destroy our CUDA info
-    CUDA_unregisterBuffer(m_cuda_pbo_handle);
+    cuda_unregister_resource(m_cuda_pbo_handle);
 
     // Destroy our OpenGL information
     m_object.destroy();
