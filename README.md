@@ -3,7 +3,7 @@ Mandelbrotr
 
 A CUDA & OpenGL-powered Qt Mandelbrot pan/zoom application.  There are many like it, but this is mine.
 
-![Screenshot](images/screenshot1.png)
+![Screenshot](images/screenshot2.png)
 
 Acknowledgements
 ----------------
@@ -12,7 +12,7 @@ Acknowledgements
 * Texturing from http://doc.qt.io/qt-5/qtopengl-textures-example.html
 * CUDA+Qt
   * https://cudaspace.wordpress.com/2012/07/05/qt-creator-cuda-linux-review/
-  * http://blog.qt.io/blog/2015/03/03/qt-weekly-28-qt-and-cuda-on-the-jetson-tk1/ 
+  * http://blog.qt.io/blog/2015/03/03/qt-weekly-28-qt-and-cuda-on-the-jetson-tk1/
   * https://www.nvidia.com/content/GTC/documents/1055_GTC09.pdf
 
 License
