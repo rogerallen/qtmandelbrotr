@@ -11,7 +11,7 @@
 #include "vertex.h"
 #include "cuda_utils.h"
 
-extern void mandelbrot(void *devPtr, int w, int h, double cx, double cy, double zoom);
+extern void mandelbrot(void *devPtr, int w, int h, double cx, double cy, double zoom, int iter, bool double_prec);
 
 // Create a colored single fullscreen triangle
 // 3*______________
@@ -43,6 +43,8 @@ Window::Window()
     m_zoom = 0.5;
     m_is_full_screen = false;
     m_zoom_out_mode = false;
+    m_iter = 1;
+    m_double_precision = true;
 }
 
 Window::~Window()
@@ -148,7 +150,7 @@ void Window::paintGL()
 
     // Do some CUDA that writes to the pbo
     void *devPtr = cuda_map_resource(m_cuda_pbo_handle);
-    mandelbrot(devPtr, m_shared_width, m_shared_height, m_center_x, m_center_y, m_zoom);
+    mandelbrot(devPtr, m_shared_width, m_shared_height, m_center_x, m_center_y, m_zoom, m_iter, m_double_precision);
     cuda_unmap_resource(m_cuda_pbo_handle);
 
     // Render using our shader
@@ -205,9 +207,28 @@ void Window::update()
             showFullScreen();
             m_is_full_screen = true;
         }
-    } else if (Input::keyPressed(Qt::Key_Return)) {
+    }
+    else if (Input::keyPressed(Qt::Key_Return)) {
         m_zoom_out_mode = true;
         printf("zoom out!\n");
+    }
+    else if (Input::keyPressed(Qt::Key_1)) {
+        m_iter = 1;
+    }
+    else if (Input::keyPressed(Qt::Key_2)) {
+        m_iter = 2;
+    }
+    else if (Input::keyPressed(Qt::Key_3)) {
+        m_iter = 3;
+    }
+    else if (Input::keyPressed(Qt::Key_4)) {
+        m_iter = 4;
+    }
+    else if (Input::keyPressed(Qt::Key_D)) {
+        m_double_precision = true;
+    }
+    else if (Input::keyPressed(Qt::Key_S)) {
+        m_double_precision = false;
     }
 
     if(m_zoom_out_mode) {
