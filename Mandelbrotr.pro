@@ -20,7 +20,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     window.cpp \
-    input.cpp \
     cuda_utils.cpp
 
 # Default rules for deployment.
@@ -31,7 +30,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     window.h \
     vertex.h \
-    input.h \
     glm\glm.hpp \
     cuda_utils.h
 

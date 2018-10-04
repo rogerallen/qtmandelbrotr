@@ -6,7 +6,7 @@
 #include <QExposeEvent>
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
-#include "input.h"
+//#include "input.h"
 #include "window.h"
 #include "vertex.h"
 #include "cuda_utils.h"
@@ -41,10 +41,13 @@ Window::Window()
     m_center_x = 0.0;
     m_center_y = 0.0;
     m_zoom = 0.5;
+    m_switch_fullscreen = false;
     m_is_full_screen = false;
     m_zoom_out_mode = false;
     m_iter = 1;
     m_double_precision = true;
+    m_quit = false;
+    m_mouse_down = false;
 }
 
 Window::~Window()
@@ -193,13 +196,13 @@ void Window::teardownGL()
 void Window::update()
 {
     // Update input
-    Input::update();
+    //Input::update();
 
-    if (Input::keyPressed(Qt::Key_Escape)) {
+    if (m_quit) {
         QCoreApplication::quit();
     }
-    else if (Input::keyPressed(Qt::Key_F)) {
-        // FIXME -- we get multiple calls & we don't want that.
+    else if (m_switch_fullscreen) {
+        m_switch_fullscreen = false;
         if (m_is_full_screen) {
             showNormal();
             m_is_full_screen = false;
@@ -207,28 +210,6 @@ void Window::update()
             showFullScreen();
             m_is_full_screen = true;
         }
-    }
-    else if (Input::keyPressed(Qt::Key_Return)) {
-        m_zoom_out_mode = true;
-        printf("zoom out!\n");
-    }
-    else if (Input::keyPressed(Qt::Key_1)) {
-        m_iter = 1;
-    }
-    else if (Input::keyPressed(Qt::Key_2)) {
-        m_iter = 2;
-    }
-    else if (Input::keyPressed(Qt::Key_3)) {
-        m_iter = 3;
-    }
-    else if (Input::keyPressed(Qt::Key_4)) {
-        m_iter = 4;
-    }
-    else if (Input::keyPressed(Qt::Key_D)) {
-        m_double_precision = true;
-    }
-    else if (Input::keyPressed(Qt::Key_S)) {
-        m_double_precision = false;
     }
 
     if(m_zoom_out_mode) {
@@ -238,7 +219,7 @@ void Window::update()
         }
     }
 
-    if (Input::buttonPressed(Qt::LeftButton)) {
+    if (m_mouse_down) {
         QPoint delta_pos = QCursor::pos() - m_mouse_start;
         double pixels_per_mspace = (m_window_width > m_window_height) ? double(m_window_width)*m_zoom : double(m_window_height)*m_zoom;
         double mspace_per_pixel = 2.0/pixels_per_mspace;
@@ -253,25 +234,55 @@ void Window::update()
 
 void Window::keyPressEvent(QKeyEvent *event)
 {
-    if (event->isAutoRepeat())
-    {
+    if (event->isAutoRepeat()) {
         event->ignore();
     }
-    else
-    {
-        Input::registerKeyPress(event->key());
+    else {
+        switch(event->key()) {
+        case Qt::Key_Escape:
+            m_quit = true;
+            break;
+        case Qt::Key_D:
+            m_double_precision = true;
+            break;
+        case Qt::Key_S:
+            m_double_precision = false;
+            break;
+        case Qt::Key_F:
+            m_switch_fullscreen = true;
+            break;
+        case Qt::Key_Return:
+            m_zoom_out_mode = true;
+            break;
+        case Qt::Key_1:
+            m_iter = 1;
+            break;
+        case Qt::Key_2:
+            m_iter = 2;
+            break;
+        case Qt::Key_3:
+            m_iter = 3;
+            break;
+        case Qt::Key_4:
+            m_iter = 4;
+            break;
+        case Qt::Key_P:
+            printf("Center = %g,%g Zoom = %g\n",m_center_x,m_center_y,m_zoom);
+            break;
+        default:
+            break;
+        }
+        //Input::registerKeyPress(event->key());
     }
 }
 
 void Window::keyReleaseEvent(QKeyEvent *event)
 {
-    if (event->isAutoRepeat())
-    {
+    if (event->isAutoRepeat()) {
         event->ignore();
     }
-    else
-    {
-        Input::registerKeyRelease(event->key());
+    else {
+        //Input::registerKeyRelease(event->key());
     }
 }
 
@@ -281,13 +292,17 @@ void Window::mousePressEvent(QMouseEvent *event)
         m_mouse_start = QCursor::pos();
         m_center_start_x = m_center_x;
         m_center_start_y = m_center_y;
+        m_mouse_down = true;
     }
-    Input::registerMousePress(event->button());
+    //Input::registerMousePress(event->button());
 }
 
 void Window::mouseReleaseEvent(QMouseEvent *event)
 {
-    Input::registerMouseRelease(event->button());
+    if(event->button() == Qt::LeftButton) {
+        m_mouse_down = false;
+    }
+    //Input::registerMouseRelease(event->button());
 }
 
 void Window::wheelEvent(QWheelEvent *event)

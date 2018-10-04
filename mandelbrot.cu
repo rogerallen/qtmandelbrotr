@@ -54,12 +54,6 @@ __global__ void mandel_float(uchar4 *ptr, int w, int h, float cx, float cy, floa
     int offset = x + y * blockDim.x * gridDim.x;
 
     if(x < w && y < h) {
-#if 0
-        uchar4 bgra = {0x0,0x0,0x0,0x0};
-        bgra.y = (unsigned char)(t + 255.99f*y/(float)h);
-        bgra.z = (unsigned char)(t + 255.99f*x/(float)w);
-        *(ptr + offset) = bgra;
-#else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
         unsigned int MaxIterations = iter_mult*256;
         float ImageWidth = w;
@@ -75,7 +69,6 @@ __global__ void mandel_float(uchar4 *ptr, int w, int h, float cx, float cy, floa
         float c_re = MinRe + x*Re_factor;
 
         float Z_re = c_re, Z_im = c_im;
-        //bool isInside = true;
         for(unsigned int n=0; n<MaxIterations; ++n) {
             float Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
             if(Z_re2 + Z_im2 > 4.0f) {
@@ -90,7 +83,6 @@ __global__ void mandel_float(uchar4 *ptr, int w, int h, float cx, float cy, floa
             Z_re = Z_re2 - Z_im2 + c_re;
         }
         *(ptr + offset) = bgra;
-#endif
     }
 }
 
@@ -101,12 +93,6 @@ __global__ void mandel_double(uchar4 *ptr, int w, int h, double cx, double cy, d
     int offset = x + y * blockDim.x * gridDim.x;
 
     if(x < w && y < h) {
-#if 0
-        uchar4 bgra = {0x0,0x0,0x0,0x0};
-        bgra.y = (unsigned char)(t + 255.99*y/(double)h);
-        bgra.z = (unsigned char)(t + 255.99*x/(double)w);
-        *(ptr + offset) = bgra;
-#else
         uchar4 bgra = {0x0,0x0,0x0,0x0};  // inside = black
         unsigned int MaxIterations = iter_mult*256;
         double ImageWidth = w;
@@ -122,7 +108,6 @@ __global__ void mandel_double(uchar4 *ptr, int w, int h, double cx, double cy, d
         double c_re = MinRe + x*Re_factor;
 
         double Z_re = c_re, Z_im = c_im;
-        //bool isInside = true;
         for(unsigned int n=0; n<MaxIterations; ++n) {
             double Z_re2 = Z_re*Z_re, Z_im2 = Z_im*Z_im;
             if(Z_re2 + Z_im2 > 4.0){
@@ -137,7 +122,6 @@ __global__ void mandel_double(uchar4 *ptr, int w, int h, double cx, double cy, d
             Z_re = Z_re2 - Z_im2 + c_re;
         }
         *(ptr + offset) = bgra;
-#endif
     }
 }
 
