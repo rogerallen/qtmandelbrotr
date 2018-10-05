@@ -56,6 +56,8 @@ private:
     int    m_iter;
     bool   m_double_precision;
     bool   m_quit;
+    unsigned char *m_pixels;
+    bool   m_save_image;
 
     void printInfo();
 };

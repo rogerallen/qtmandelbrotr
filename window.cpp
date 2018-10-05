@@ -4,6 +4,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QExposeEvent>
+#include <QImage>
+#include <QImageWriter>
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 //#include "input.h"
@@ -48,6 +50,8 @@ Window::Window()
     m_double_precision = true;
     m_quit = false;
     m_mouse_down = false;
+    m_pixels = nullptr;
+    m_save_image = false;
 }
 
 Window::~Window()
@@ -144,6 +148,14 @@ void Window::resizeGL(int width, int height)
         // aspect < 1, set the height from -1 to 1, with larger width
         m_projection = glm::ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f);
     }
+
+    // resize rgb array for saving pixels
+    if(m_pixels != nullptr) {
+        delete[](m_pixels);
+    }
+    m_pixels = new unsigned char[m_window_width * m_window_height * 4];
+    printf("m_pixels size = %d\n",m_window_width * m_window_height * 4);
+
 }
 
 void Window::paintGL()
@@ -230,6 +242,16 @@ void Window::update()
     }
 
     QOpenGLWindow::update();
+
+    if(m_save_image) {
+        printf("write save.png\n");
+        m_save_image = false;
+        glReadPixels(0, 0, m_window_width, m_window_height, GL_RGBA, GL_UNSIGNED_BYTE, m_pixels);
+        QImageWriter *imw = new QImageWriter();
+        imw->setFileName("save.png");
+        QImage *im = new QImage((const unsigned char *)m_pixels, m_window_width, m_window_height, QImage::Format_RGBA8888);
+        imw->write(im->mirrored());
+    }
 }
 
 void Window::keyPressEvent(QKeyEvent *event)
@@ -268,6 +290,9 @@ void Window::keyPressEvent(QKeyEvent *event)
             break;
         case Qt::Key_P:
             printf("Center = %g,%g Zoom = %g\n",m_center_x,m_center_y,m_zoom);
+            break;
+        case Qt::Key_W:
+            m_save_image = true;
             break;
         default:
             break;
